@@ -36,9 +36,6 @@ src/
 ├── routes/
 │
 ├── docs/
-│
-├── tests/
-│
 ├── app/
 └── server/
 ```
