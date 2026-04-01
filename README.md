@@ -14,3 +14,31 @@ The application provides a modern web interface allowing choir members and admin
 - Contributions management
 - Notifications and reminders
 - Gallery and announcements
+
+## Folder structure
+
+```
+src/
+├── modules/│
+├── core/
+│   ├── middlewares/
+│   ├── services/
+│   ├── utils/
+│   └── constants/
+│
+├── config/
+│
+├── database/
+│   ├── models/
+│   ├── migrations/
+│   └── seed/
+│
+├── routes/
+│
+├── docs/
+│
+├── tests/
+│
+├── app/
+└── server/
+```
