@@ -19,7 +19,7 @@ The application provides a modern web interface allowing choir members and admin
 
 ```
 src/
-├── modules/│
+├── modules/
 ├── core/
 │   ├── middlewares/
 │   ├── services/
