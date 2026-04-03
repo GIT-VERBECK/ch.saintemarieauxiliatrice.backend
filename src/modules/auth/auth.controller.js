@@ -49,6 +49,51 @@ const register = async (req, res) => {
   }
 };
 
+const login = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    // 1. Connexion via Supabase Auth
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (authError) {
+      return res.status(401).json({ error: "Identifiants invalides ou compte non confirmé." });
+    }
+
+    const { user, session } = authData;
+
+    // 2. Récupérer les infos du profil
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single();
+
+    if (profileError) {
+      return res.status(400).json({ error: "Erreur lors de la récupération du profil." });
+    }
+
+    return res.status(200).json({
+      message: "Connexion réussie.",
+      token: session.access_token,
+      user: {
+        id: user.id,
+        email: user.email,
+        full_name: profile.full_name,
+        voice_type: profile.voice_type,
+        role: profile.role,
+      }
+    });
+
+  } catch (error) {
+    return res.status(500).json({ error: "Erreur serveur lors de la connexion." });
+  }
+};
+
 module.exports = {
   register,
+  login,
 };
