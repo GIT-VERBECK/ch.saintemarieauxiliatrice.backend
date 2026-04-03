@@ -1,0 +1,34 @@
+{
+  "name": "ch.saintemarieauxiliatrice.backend-",
+  "version": "1.0.0",
+  "description": "This repository contains the **backend application** of the digital platform used by the **Chorale Sainte Marie Auxiliatrice**.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node src/server/index.js",
+    "dev": "nodemon src/server/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/GIT-VERBECK/ch.saintemarieauxiliatrice.backend.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/GIT-VERBECK/ch.saintemarieauxiliatrice.backend/issues"
+  },
+  "homepage": "https://github.com/GIT-VERBECK/ch.saintemarieauxiliatrice.backend#readme",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.101.1",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.0",
+    "express": "^5.2.1",
+    "helmet": "^8.1.0",
+    "morgan": "^1.10.1",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}
