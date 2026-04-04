@@ -93,7 +93,34 @@ const login = async (req, res) => {
   }
 };
 
+const updateProfile = async (req, res) => {
+  try {
+    const { full_name, voice_type, phone } = req.body;
+    const userId = req.user.id;
+
+    const { data, error } = await supabase
+      .from('profiles')
+      .update({ full_name, voice_type, phone })
+      .eq('id', userId)
+      .select()
+      .single();
+
+    if (error) {
+      return res.status(400).json({ error: error.message });
+    }
+
+    return res.status(200).json({
+      message: "Profil mis à jour avec succès.",
+      user: data
+    });
+
+  } catch (error) {
+    return res.status(500).json({ error: "Erreur lors de la mise à jour du profil." });
+  }
+};
+
 module.exports = {
   register,
   login,
+  updateProfile,
 };
