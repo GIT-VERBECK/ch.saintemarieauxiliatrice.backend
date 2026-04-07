@@ -7,50 +7,39 @@ const getDashboardOverview = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    // 1. Récupérer le profil utilisateur
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single();
+    // Lancement de toutes les requêtes en parallèle pour éviter le "Waterfall"
+    const [
+      { data: profile, error: profileError },
+      { count: membersCount, error: membersError },
+      { count: partitionsCount, error: partitionsCountError },
+      { data: recentPartitions, error: partitionsError },
+      { data: nextEvent, error: eventError },
+      { data: lastAnnouncements, error: announcementsError }
+    ] = await Promise.all([
+      supabase.from('profiles').select('*').eq('id', userId).single(),
+      supabase.from('profiles').select('id', { count: 'exact', head: true }),
+      supabase.from('partitions').select('id', { count: 'exact', head: true }),
+      supabase.from('partitions').select('*').order('created_at', { ascending: false }).limit(5),
+      supabase.from('events').select('*').gte('event_date', new Date().toISOString()).order('event_date', { ascending: true }).limit(1).maybeSingle(),
+      supabase.from('announcements').select('*').order('created_at', { ascending: false }).limit(3)
+    ]);
 
     if (profileError) {
-        return res.status(404).json({ error: "Profil non trouvé." });
+        return res.status(404).json({ error: "Profil utilisateur non trouvé." });
     }
 
-    // 2. Compter le nombre total de membres (Choristes)
-    const { count: membersCount, error: membersError } = await supabase
-      .from('profiles')
-      .select('*', { count: 'exact', head: true });
-
-    // 3. Récupérer les dernières partitions (ex: 5 dernières)
-    const { data: recentPartitions, error: partitionsError } = await supabase
-      .from('partitions')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(5);
-
-    // 4. Récupérer la prochaine répétition / prochain événement
-    const { data: nextEvent, error: eventError } = await supabase
-      .from('events')
-      .select('*')
-      .gte('event_date', new Date().toISOString())
-      .order('event_date', { ascending: true })
-      .limit(1)
-      .single();
-
-    // 5. Récupérer les dernières annonces
-    const { data: lastAnnouncements, error: announcementsError } = await supabase
-      .from('announcements')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(3);
+    // On log les erreurs non bloquantes si nécessaire
+    if (membersError) console.error("Error fetching members count:", membersError);
+    if (partitionsCountError) console.error("Error fetching partitions count:", partitionsCountError);
+    if (partitionsError) console.error("Error fetching recent partitions:", partitionsError);
+    if (eventError) console.error("Error fetching next event:", eventError);
+    if (announcementsError) console.error("Error fetching announcements:", announcementsError);
 
     return res.status(200).json({
       profile,
       stats: {
         totalMembers: membersCount || 0,
-        totalPartitions: 0, // Sera remplacé quand on aura la table
+        totalPartitions: partitionsCount || 0,
       },
       nextEvent: nextEvent || null,
       recentPartitions: recentPartitions || [],
@@ -58,6 +47,7 @@ const getDashboardOverview = async (req, res) => {
     });
 
   } catch (error) {
+    console.error("Dashboard Overview Error:", error);
     return res.status(500).json({ error: "Erreur lors du chargement des données du dashboard." });
   }
 };
