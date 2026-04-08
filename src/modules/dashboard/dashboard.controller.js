@@ -107,9 +107,88 @@ const getEvents = async (req, res) => {
     }
 };
 
+/**
+ * Préférences dashboard utilisateur (favoris, annonces lues, dernière partition)
+ */
+const getDashboardPreferences = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { data, error } = await supabase
+            .from('dashboard_preferences')
+            .select('*')
+            .eq('user_id', userId)
+            .maybeSingle();
+
+        // Si la table n'existe pas encore en base, on renvoie une config vide pour ne pas casser le front.
+        if (error && error.code === '42P01') {
+            return res.status(200).json({
+                readAnnouncementIds: [],
+                favoriteScoreIds: [],
+                lastOpenedScore: null,
+            });
+        }
+
+        if (error) throw error;
+
+        return res.status(200).json({
+            readAnnouncementIds: data?.read_announcement_ids || [],
+            favoriteScoreIds: data?.favorite_score_ids || [],
+            lastOpenedScore: data?.last_opened_score || null,
+        });
+    } catch (error) {
+        return res.status(500).json({ error: "Erreur lors du chargement des préférences dashboard." });
+    }
+};
+
+const updateDashboardPreferences = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const {
+            readAnnouncementIds = [],
+            favoriteScoreIds = [],
+            lastOpenedScore = null,
+        } = req.body || {};
+
+        const payload = {
+            user_id: userId,
+            read_announcement_ids: readAnnouncementIds,
+            favorite_score_ids: favoriteScoreIds,
+            last_opened_score: lastOpenedScore,
+            updated_at: new Date().toISOString(),
+        };
+
+        const { data, error } = await supabase
+            .from('dashboard_preferences')
+            .upsert(payload, { onConflict: 'user_id' })
+            .select('*')
+            .single();
+
+        if (error && error.code === '42P01') {
+            return res.status(200).json({
+                warning: 'dashboard_preferences table missing',
+                readAnnouncementIds,
+                favoriteScoreIds,
+                lastOpenedScore,
+            });
+        }
+
+        if (error) throw error;
+
+        return res.status(200).json({
+            readAnnouncementIds: data?.read_announcement_ids || [],
+            favoriteScoreIds: data?.favorite_score_ids || [],
+            lastOpenedScore: data?.last_opened_score || null,
+        });
+    } catch (error) {
+        return res.status(500).json({ error: "Erreur lors de la mise à jour des préférences dashboard." });
+    }
+};
+
 module.exports = {
   getDashboardOverview,
   getPartitions,
   getAnnouncements,
   getEvents,
+  getDashboardPreferences,
+  updateDashboardPreferences,
 };

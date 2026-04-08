@@ -23,4 +23,10 @@ router.get('/announcements', authGuard, dashboardController.getAnnouncements);
  */
 router.get('/events', authGuard, dashboardController.getEvents);
 
+/**
+ * Préférences personnelles du dashboard
+ */
+router.get('/preferences', authGuard, dashboardController.getDashboardPreferences);
+router.put('/preferences', authGuard, dashboardController.updateDashboardPreferences);
+
 module.exports = router;
