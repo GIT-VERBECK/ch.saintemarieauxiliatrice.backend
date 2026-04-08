@@ -3,8 +3,8 @@
 
 create table if not exists public.dashboard_preferences (
   user_id uuid primary key references public.profiles(id) on delete cascade,
-  read_announcement_ids bigint[] not null default '{}',
-  favorite_score_ids bigint[] not null default '{}',
+  read_announcement_ids text[] not null default '{}',
+  favorite_score_ids text[] not null default '{}',
   last_opened_score jsonb null,
   updated_at timestamptz not null default now()
 );
